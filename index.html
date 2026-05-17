@@ -26,47 +26,135 @@
   </script>
 
   <style>
-    html,
-    body {
+    /* ── Reset ── */
+    *, *::before, *::after { box-sizing: border-box; }
+
+    html, body {
       padding: 0;
       margin: 0;
-      font-family: Roboto Mono, sans-serif;
-      height: 100%;
+      overflow: hidden;           /* hide scrollbars */
+      width: 100vw;
+      height: 100vh;
+      font-family: 'Roboto Mono', sans-serif;
     }
 
+    /* ── 1. Oversized container ── */
+    .gradient-container {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 300vmax;
+      height: 300vmax;
+      transform: translate(-50%, -50%) rotate(var(--rotation, 0deg));
+      transition: transform 5s ease-in-out;
+      filter: blur(80px);
+
+      /* ── 2. Endless-scroll base gradient (Blue → Red → Yellow → Green → Blue → Red) ── */
+      background: linear-gradient(
+        to right,
+        #4285F4,
+        #EA4335,
+        #FBBC05,
+        #34A853,
+        #4285F4,
+        #EA4335
+      );
+      background-size: 500% 100%;
+      animation: scrollGradient 5s linear infinite;
+    }
+
+    /* ── 2. Background-position scroll ── */
+    @keyframes scrollGradient {
+      from { background-position: 0% 0%; }
+      to   { background-position: 100% 0%; }
+    }
+
+    /* ── 4. Overlay pseudo-element ── */
+    .gradient-container::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        to bottom right,
+        rgba(66,  133, 244, 0.45),   /* Blue  */
+        rgba(234,  67,  53, 0.45),   /* Red   */
+        rgba(251, 188,   5, 0.45),   /* Yellow */
+        rgba(52,  168,  83, 0.45)    /* Green */
+      );
+      background-size: 400% 400%;
+      animation: overlayDrift 18s ease-in-out infinite alternate;
+    }
+
+    @keyframes overlayDrift {
+      0%   { background-position: 0%   0%;   }
+      25%  { background-position: 100% 0%;   }
+      50%  { background-position: 100% 100%; }
+      75%  { background-position: 0%   100%; }
+      100% { background-position: 50%  50%;  }
+    }
+
+    /* ── Page content sits above the animation ── */
     section {
+      position: relative;
+      z-index: 10;
       display: grid;
       justify-content: center;
       align-content: center;
-
-      height: 100%;
-      font-size: 100px;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f97316 50%, #db00ff 75%, #667eea 100%);
-      background-size: 400% 400%;
-      animation: gradientShift 15s ease infinite;
-      color: white;
+      width: 100vw;
+      height: 100vh;
     }
 
-    @keyframes gradientShift {
-      0% {
-        background-position: 0% 50%;
-      }
-      50% {
-        background-position: 100% 50%;
-      }
-      100% {
-        background-position: 0% 50%;
-      }
+    /* ── 5. MW Logo Animation ── */
+    @keyframes rotateMW {
+      0%, 40% { transform: rotate(0deg); }
+      50%, 90% { transform: rotate(180deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .mw-logo {
+      width: 240px;
+      height: 120px;
+      overflow: visible;
+      filter: drop-shadow(0 2px 24px rgba(0,0,0,0.35));
+      animation: rotateMW 4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
     }
   </style>
 </head>
 
 <body>
+  <!-- Fluid background -->
+  <div class="gradient-container"></div>
+
   <section>
     <article>
-      MW
+      <svg class="mw-logo" viewBox="-120 -60 240 120" xmlns="http://www.w3.org/2000/svg">
+        <g fill="none" stroke="white" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+          <!-- M -->
+          <polyline points="-100,40 -100,-40 -60,10 -20,-40 -20,40" />
+          <!-- W -->
+          <polyline points="20,-40 20,40 60,-10 100,40 100,-40" />
+        </g>
+      </svg>
     </article>
   </section>
+
+  <script>
+    (function () {
+      const el = document.querySelector('.gradient-container');
+      let cumulativeAngle = 0;
+
+      function rotateStep() {
+        // Random offset between -120 and 120 degrees
+        const offset = (Math.random() * 240) - 120;
+        cumulativeAngle += offset;
+        el.style.setProperty('--rotation', cumulativeAngle + 'deg');
+        setTimeout(rotateStep, 5000);
+      }
+
+      // Fire first update 100 ms after load
+      setTimeout(rotateStep, 100);
+    })();
+  </script>
 </body>
 
 </html>
